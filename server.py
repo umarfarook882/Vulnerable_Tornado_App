@@ -17,7 +17,6 @@ class Application(tornado.web.Application):
 
     def __init__(self):
         handlers = [
-            (r"/static/(.*)", StaticHandler),
             (r"/", MainHandler),
             (r"/index.html", MainHandler),
             (r"/search", SearchHandler),
@@ -28,29 +27,16 @@ class Application(tornado.web.Application):
         ]
         settings = {
             "template_path": os.path.join(os.path.dirname(__file__), 'templates'),
+            "static_path": os.path.join(os.path.dirname(__file__), "static"),
             "debug": True
         }
         tornado.web.Application.__init__(self, handlers, **settings)
 
 
-class StaticHandler(tornado.web.RequestHandler):
-
-    def get(self, path):
-        #print "GET ", self.request.uri
-        path = 'static/' + path
-        base = os.path.join(os.path.dirname(__file__))
-        static_file = os.path.join(base, path)
-        mime_type, _ = mimetypes.guess_type(static_file)
-        if mime_type:
-            self.set_header("Content-Type", mime_type)
-        with open(static_file, "r") as fpl:
-            self.write(fpl.read())
-
-
 class MainHandler(tornado.web.RequestHandler):
 
     def get(self):
-        print "GET ", self.request.uri
+        print("GET ", self.request.uri)
         self.render("index.html")
 
 
@@ -83,7 +69,7 @@ class ContentHandler(tornado.web.RequestHandler):
 class SearchHandler(tornado.web.RequestHandler):
 
     def get(self):
-        print "GET ", self.request.uri
+        print("GET ", self.request.uri)
         query = self.get_argument("q", default="Query")
         self.set_header('X-XSS-Protection', '0')
         self.render("search.html", query=query, link=query)
@@ -92,11 +78,11 @@ class SearchHandler(tornado.web.RequestHandler):
 class UsersHandler(tornado.web.RequestHandler):
 
     def get(self):
-        print "GET ", self.request.uri
+        print("GET ", self.request.uri)
         self.render("login.html", msg="")
 
     def post(self):
-        print "POST ", self.request.uri, "\nBODY ", self.request.body
+        print("POST ", self.request.uri, "\nBODY ", self.request.body)
         con = lite.connect('test.db')
         dat = ""
         uname = self.get_argument('username')
@@ -116,11 +102,11 @@ class UsersHandler(tornado.web.RequestHandler):
 class ServerHandler(tornado.web.RequestHandler):
 
     def get(self):
-        print "GET ", self.request.uri
+        print("GET ", self.request.uri)
         self.render("server.html", msg="", cmd="127.0.0.1")
 
     def post(self):
-        print "POST ", self.request.uri, "\nBODY ", self.request.body
+        print("POST ", self.request.uri, "\nBODY ", self.request.body)
         server = self.get_argument('server')
         process = os.popen('ping -c 3 ' + server)
         preprocessed = process.read()
@@ -154,7 +140,7 @@ def main():
     http_server = tornado.httpserver.HTTPServer(applicaton)
     http_server.bind(7776, address='127.0.0.1')
     http_server.start()
-    print "Server Started: http://127.0.0.1:7776"
+    print("Server Started: http://127.0.0.1:7776")
     tornado.ioloop.IOLoop.instance().start()
 
 if __name__ == "__main__":
